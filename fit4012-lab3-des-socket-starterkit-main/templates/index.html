@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DES Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="shell">
+        <section class="grid">
+            <article class="panel">
+                <div class="panel-head">
+                    <h2>Gửi bản tin</h2>
+                    <p>Nhập nội dung để web tự mã hóa DES-CBC rồi gửi qua socket.</p>
+                </div>
+                <form method="post" action="{{ url_for('send_message') }}" class="form-grid">
+                    <label>
+                        <span>Server IP</span>
+                        <input name="host" value="{{ state.receiver_host }}" placeholder="127.0.0.1">
+                    </label>
+                    <label>
+                        <span>Server Port</span>
+                        <input name="port" type="number" min="1" max="65535" value="{{ state.receiver_port }}">
+                    </label>
+                    <label class="full">
+                        <span>Nội dung bản tin</span>
+                        <textarea name="message" rows="5" placeholder="Nhập nội dung cần gửi...">{{ state.last_message }}</textarea>
+                    </label>
+                    <button type="submit" class="accent">Mã hóa và gửi</button>
+                </form>
+                {% if state.last_sender_error %}
+                <p class="error-text">{{ state.last_sender_error }}</p>
+                {% endif %}
+                {% if state.last_sender_status and state.last_sender_status != 'Chưa gửi bản tin nào.' %}
+                <p class="status-text">{{ state.last_sender_status }}</p>
+                {% endif %}
+                <dl class="kv">
+                    <div>
+                        <dt>Key</dt>
+                        <dd>{{ state.last_key_hex or 'Chưa có dữ liệu.' }}</dd>
+                    </div>
+                    <div>
+                        <dt>IV</dt>
+                        <dd>{{ state.last_iv_hex or 'Chưa có dữ liệu.' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Ciphertext</dt>
+                        <dd>{{ state.last_ciphertext_hex or 'Chưa có dữ liệu.' }}</dd>
+                    </div>
+                </dl>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <h2>Giải mã</h2>
+                    <p>Dùng key, IV và ciphertext dạng hex để giải mã, đồng thời xem luôn plaintext mà receiver nhận được.</p>
+                </div>
+                <div class="result-box compact">
+                    <p class="result-title">{{ state.receiver_status }}</p>
+                    {% if state.receiver_error %}
+                    <p class="error-text">{{ state.receiver_error }}</p>
+                    {% endif %}
+                    <div class="kv">
+                        <div>
+                            <dt>Peer</dt>
+                            <dd>{{ state.last_peer or 'Chưa có kết nối.' }}</dd>
+                        </div>
+                        <div>
+                            <dt>Plaintext từ receiver</dt>
+                            <dd>{{ state.last_plaintext or 'Chưa nhận được bản tin.' }}</dd>
+                        </div>
+                    </div>
+                </div>
+                <form method="post" action="{{ url_for('decrypt_message') }}" class="form-grid section-gap">
+                    <label class="full">
+                        <span>Key (hex)</span>
+                        <input name="key_hex" value="{{ state.last_key_hex }}" placeholder="Ví dụ: 3132333435363738">
+                    </label>
+                    <label class="full">
+                        <span>IV (hex)</span>
+                        <input name="iv_hex" value="{{ state.last_iv_hex }}" placeholder="Ví dụ: 6162636465666768">
+                    </label>
+                    <label class="full">
+                        <span>Ciphertext (hex)</span>
+                        <textarea name="ciphertext_hex" rows="4" placeholder="Paste ciphertext dạng hex...">{{ state.last_ciphertext_hex }}</textarea>
+                    </label>
+                    <button type="submit" class="primary">Giải mã ngay</button>
+                </form>
+                <div class="result-box">
+                    <p class="result-title">{{ state.manual_decrypt_status }}</p>
+                    {% if state.manual_decrypt_error %}
+                    <p class="error-text">{{ state.manual_decrypt_error }}</p>
+                    {% endif %}
+                    <div class="kv">
+                        <div>
+                            <dt>Plaintext thủ công</dt>
+                            <dd>{{ state.manual_decrypt_plaintext or 'Chưa có kết quả giải mã.' }}</dd>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

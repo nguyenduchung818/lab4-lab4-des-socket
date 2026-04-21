@@ -1,0 +1,33 @@
+name: fit4012-lab3-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Static syntax check
+        run: |
+          python -m py_compile sender.py receiver.py des_socket_utils.py
+
+      - name: Submission contract check
+        run: bash .github/scripts/check_submission.sh
+
+      - name: Run tests
+        run: pytest -q
